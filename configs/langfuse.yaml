@@ -1,0 +1,5 @@
+langfuse:
+  enabled: false
+  host: http://localhost:3000
+  trace_inputs: true
+  trace_outputs: true

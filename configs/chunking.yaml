@@ -1,0 +1,5 @@
+chunking:
+  child_chunk_tokens: 500
+  child_overlap_tokens: 75
+  parent_strategy: section
+  max_parent_tokens: 2500

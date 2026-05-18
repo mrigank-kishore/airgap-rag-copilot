@@ -1,0 +1,7 @@
+qdrant:
+  url: http://localhost:6333
+  collection: localdoc_chunks
+  vector_size: 1024
+  distance: Cosine
+  on_disk_vectors: true
+  quantization: int8

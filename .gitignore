@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local data and generated artifacts
+data/raw/*
+data/processed/*
+data/manifests/*
+storage/qdrant/*
+storage/snapshots/*
+storage/metadata/*
+models/llm/*
+models/embeddings/*
+models/rerankers/*
+evals/reports/*
+
+# Keep directory placeholders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/manifests/.gitkeep
+!storage/qdrant/.gitkeep
+!storage/snapshots/.gitkeep
+!storage/metadata/.gitkeep
+!models/llm/.gitkeep
+!models/embeddings/.gitkeep
+!models/rerankers/.gitkeep
+!evals/reports/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
