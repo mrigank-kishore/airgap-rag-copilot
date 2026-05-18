@@ -1,1 +1,0 @@
-"""Vector and metadata indexing."""

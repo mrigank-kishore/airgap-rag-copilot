@@ -1,1 +1,0 @@
-"""Closed LocalDoc Copilot."""
