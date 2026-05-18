@@ -1,0 +1,5 @@
+FROM ghcr.io/huggingface/text-embeddings-inference:latest
+
+ENV MODEL_ID=/models
+
+EXPOSE 80

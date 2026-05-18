@@ -25,7 +25,7 @@ This architecture is designed for a commercial production workload with the foll
 | Data Parsing | Unstructured local package/container | Apache 2.0 core | Extracts text and tables from PDFs, DOCX, HTML, TXT, and other offline files. |
 | Observability | Langfuse self-hosted core | MIT/open-core | Local tracing for prompts, retrieval calls, model latency, and agent behavior. |
 | Evaluation | Ragas / DeepEval | Apache 2.0 | Regression testing for retrieval quality, faithfulness, answer relevance, and hallucination risk. |
-| Runtime Packaging | Docker Compose | Apache 2.0 | Repeatable local and on-prem deployment. |
+| Runtime Packaging | Dockerfiles per component | Apache 2.0 | Repeatable local and on-prem deployment without Compose coupling. |
 
 ## Licensing Position
 
@@ -322,7 +322,7 @@ Notes:
 | GPU | Not required | Not required |
 | Runtime | Python service | Python service behind internal reverse proxy |
 | Agent Controls | Recursion limit, timeout, max tool calls | Recursion limit, timeout, max tool calls, duplicate-query detection |
-| Deployment | Docker Compose | Docker Compose or Kubernetes |
+| Deployment | Standalone Dockerfiles and run scripts | Standalone Dockerfiles, service manager, or Kubernetes |
 
 Notes:
 
@@ -369,7 +369,7 @@ Notes:
 | Requirement | Minimum Production | Recommended Production |
 |---|---|---|
 | OS | Ubuntu LTS or enterprise Linux | Ubuntu LTS or enterprise Linux |
-| Container Runtime | Docker Engine with Docker Compose | Docker Compose for single-node; Kubernetes for multi-node |
+| Container Runtime | Docker Engine with standalone component containers | Docker Engine, systemd-managed containers, or Kubernetes |
 | Network | Internal LAN only | Private network with no public ingress |
 | Artifact Supply | Manually loaded images/models | Internal offline registry and package mirror |
 | Security | Host firewall and local accounts | Internal TLS, RBAC, audit logs, secrets management |
@@ -395,7 +395,7 @@ For production, the 100GB document requirement mainly stresses storage, RAM, ind
 Minimum production controls:
 
 - Air-gapped model and container artifact registry
-- Reproducible Docker Compose or Kubernetes manifests
+- Reproducible component Dockerfiles and run/deployment manifests
 - Offline package mirror or prebuilt wheel/container bundle
 - Version-pinned models and containers
 - Qdrant snapshot schedule

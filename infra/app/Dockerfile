@@ -7,4 +7,6 @@ COPY configs /app/configs
 
 ENV PYTHONPATH=/app/src
 
+EXPOSE 8000
+
 CMD ["python", "-m", "localdoc_copilot.app.main"]

@@ -1,8 +1,0 @@
-services:
-  app:
-    volumes:
-      - ./src:/app/src
-      - ./configs:/app/configs
-      - ./data:/app/data
-    environment:
-      APP_ENV: development

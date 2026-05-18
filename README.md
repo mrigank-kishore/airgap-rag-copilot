@@ -5,3 +5,19 @@ Production-ready RAG system for closed, air-gapped environments with no recurrin
 This project is an on-premises local document copilot for private document search over large local corpora.
 
 See [OFFLINE_RAG_PRODUCTION_STACK.md](OFFLINE_RAG_PRODUCTION_STACK.md) for the production stack, sizing guidance, and architecture notes.
+
+## Run Individual Components
+
+Each runtime component has its own Dockerfile under `infra/`.
+
+Run Qdrant only:
+
+```powershell
+scripts/run_qdrant.ps1
+```
+
+Qdrant will be available at:
+
+```text
+http://localhost:6333
+```
