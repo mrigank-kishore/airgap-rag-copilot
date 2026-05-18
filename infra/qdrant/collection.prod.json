@@ -1,0 +1,25 @@
+{
+  "vectors": {
+    "size": 1024,
+    "distance": "Cosine",
+    "on_disk": true
+  },
+  "on_disk_payload": true,
+  "hnsw_config": {
+    "m": 32,
+    "ef_construct": 128,
+    "full_scan_threshold": 10000,
+    "on_disk": true
+  },
+  "optimizers_config": {
+    "default_segment_number": 8,
+    "indexing_threshold": 20000
+  },
+  "quantization_config": {
+    "scalar": {
+      "type": "int8",
+      "quantile": 0.99,
+      "always_ram": false
+    }
+  }
+}
