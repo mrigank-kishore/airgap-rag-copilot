@@ -19,8 +19,10 @@ data/raw/*
 data/processed/*
 data/manifests/*
 storage/qdrant/*
+storage/qdrant-snapshots/*
 storage/snapshots/*
 storage/metadata/*
+storage/ingestion/*
 models/llm/*
 models/embeddings/*
 models/rerankers/*
@@ -31,8 +33,10 @@ evals/reports/*
 !data/processed/.gitkeep
 !data/manifests/.gitkeep
 !storage/qdrant/.gitkeep
+!storage/qdrant-snapshots/.gitkeep
 !storage/snapshots/.gitkeep
 !storage/metadata/.gitkeep
+!storage/ingestion/.gitkeep
 !models/llm/.gitkeep
 !models/embeddings/.gitkeep
 !models/rerankers/.gitkeep

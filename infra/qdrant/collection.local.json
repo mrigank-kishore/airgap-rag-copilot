@@ -1,0 +1,17 @@
+{
+  "vectors": {
+    "size": 384,
+    "distance": "Cosine"
+  },
+  "on_disk_payload": false,
+  "hnsw_config": {
+    "m": 16,
+    "ef_construct": 64,
+    "full_scan_threshold": 10000,
+    "on_disk": false
+  },
+  "optimizers_config": {
+    "default_segment_number": 2,
+    "indexing_threshold": 10000
+  }
+}
