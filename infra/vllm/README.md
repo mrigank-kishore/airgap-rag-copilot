@@ -28,5 +28,5 @@ docker run -p 8080:8080 -v /local/path/llama-8b:/models/llama-8b --rm vllm-llama
 
 Notes:
 - Mount your Llama 8B model files into `/models/llama-8b` inside the container.
-- The `entrypoint.sh` checks that the model directory exists and will fail fast if not mounted.
+- The container will run `vllm` directly and expects the model mounted at `/models/llama-8b`.
 - If you need a different CUDA/PyTorch combination, pass `TORCH_CUDA` at build time (for example `cu118`, `cu121`, or `cpu` if you have CPU wheels available).

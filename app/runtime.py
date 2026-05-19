@@ -13,10 +13,10 @@ import typer
 
 DEFAULT_QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 DEFAULT_TEI_URL = os.getenv("TEI_EMBEDDING_URL", "http://localhost:8080")
-DEFAULT_VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000")
+DEFAULT_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_COLLECTION = os.getenv("QDRANT_COLLECTION", "localdoc_chunks_dev")
 DEFAULT_DB_PATH = Path(os.getenv("INGESTION_DB", "storage/ingestion/ingestion.db"))
-DEFAULT_VLLM_MODEL = os.getenv("VLLM_MODEL", "llama-3-8b-instruct")
+DEFAULT_OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 
 app = typer.Typer(help="Run one-shot and agentic RAG against local Qdrant + TEI + vLLM.")
 
@@ -129,7 +129,7 @@ class IngestionStore:
         self.connection.close()
 
 
-class VLLMClient:
+class OllamaClient:
     def __init__(self, base_url: str, model: str, timeout_seconds: int = 120) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -137,7 +137,7 @@ class VLLMClient:
 
     def complete(self, prompt: str, max_tokens: int = 512, temperature: float = 0.0) -> str:
         response = requests.post(
-            f"{self.base_url}/v1/chat/completions",
+            f"{self.base_url}/api/chat",
             json={
                 "model": self.model,
                 "messages": [
@@ -145,14 +145,13 @@ class VLLMClient:
                     {"role": "user", "content": prompt},
                 ],
                 "temperature": temperature,
-                "max_tokens": max_tokens,
+                "stream": False,
             },
             timeout=self.timeout_seconds,
         )
         response.raise_for_status()
         data = response.json()
-        choice = data.get("choices", [])[0]
-        message = choice.get("message", {}) if isinstance(choice, dict) else {}
+        message = data.get("message", {})
         return message.get("content", "").strip()
 
 
@@ -171,10 +170,17 @@ def build_prompt(query: str, passages: List[RetrievedPassage]) -> str:
             f"PASSAGE {index}\nSource: {passage.source_path}\nHeading: {passage.heading}\nScore: {passage.score:.4f}\n{snippet}"
         )
 
+    # Encourage extraction of concise definitions when present. If any passage contains a
+    # definitional sentence (for example contains 'is a'/'is an' or 'refers to'), produce a
+    # short definition (1-3 sentences) using only the passages and cite the single best
+    # source (source path + heading). Otherwise, if no clear answer is present, reply
+    # exactly with: 'I could not find a definitive answer in the documents.'
     return (
-        "Use only the information from the retrieved passages below. Do not hallucinate. "
-        "If the answer is not present in the passages, respond with: 'I could not find a definitive answer in the documents.'\n\n"
-        "CITE your sources using the source path and heading.\n\n"
+        "Use only the information from the retrieved passages below. Do not hallucinate.\n\n"
+        "If any passage contains a clear definitional sentence (for example: 'X is a', 'X is an', "
+        "or 'X refers to'), produce a concise definition (1-3 short sentences) and CITE the single best source "
+        "using the source path and heading (format: '- <source>\n  - Heading: <heading>').\n\n"
+        "If the passages do not contain a clear definitional statement, respond with exactly: 'I could not find a definitive answer in the documents.'\n\n"
         f"QUESTION: {query}\n\nRETRIEVED PASSAGES:\n\n"
         + "\n\n".join(blocks)
     )
@@ -225,8 +231,8 @@ def one_shot_rag(query: str, qdrant: QdrantClient, tei: TeiClient, ingestion: In
     passages = collapse_by_parent(hits, parents)[:top_passages]
     passages = rerank_passages(tei=tei, query=query, passages=passages, use_reranker=use_reranker)
     prompt = build_prompt(query=query, passages=passages)
-    vllm = VLLMClient(base_url=DEFAULT_VLLM_URL, model=DEFAULT_VLLM_MODEL)
-    return vllm.complete(prompt=prompt)
+    ollama = OllamaClient(base_url=DEFAULT_OLLAMA_URL, model=DEFAULT_OLLAMA_MODEL)
+    return ollama.complete(prompt=prompt)
 
 
 def should_refine(answer: str) -> bool:
@@ -236,7 +242,7 @@ def should_refine(answer: str) -> bool:
     return False
 
 
-def refine_query(original_query: str, previous_answer: str, passages: List[RetrievedPassage], vllm: VLLMClient) -> str:
+def refine_query(original_query: str, previous_answer: str, passages: List[RetrievedPassage], vllm: OllamaClient) -> str:
     context = "\n\n".join(f"- {p.source_path} | {p.heading}" for p in passages[:5])
     prompt = (
         "You are a retrieval assistant that refines search queries. "
@@ -256,7 +262,7 @@ def refine_query(original_query: str, previous_answer: str, passages: List[Retri
 
 
 def agentic_rag(query: str, qdrant: QdrantClient, tei: TeiClient, ingestion: IngestionStore, collection: str, search_limit: int, top_passages: int, use_reranker: bool, max_iterations: int) -> str:
-    vllm = VLLMClient(base_url=DEFAULT_VLLM_URL, model=DEFAULT_VLLM_MODEL)
+    ollama = OllamaClient(base_url=DEFAULT_OLLAMA_URL, model=DEFAULT_OLLAMA_MODEL)
     current_query = query
     last_answer = ""
     for iteration in range(1, max_iterations + 1):
@@ -279,7 +285,7 @@ def agentic_rag(query: str, qdrant: QdrantClient, tei: TeiClient, ingestion: Ing
         hits = qdrant.search(collection=collection, vector=embedding, limit=search_limit)
         parents = ingestion.fetch_parents([str(hit.payload.get("parent_id", "")) for hit in hits])
         passages = collapse_by_parent(hits, parents)[:top_passages]
-        next_query = refine_query(original_query=query, previous_answer=answer, passages=passages, vllm=vllm)
+        next_query = refine_query(original_query=query, previous_answer=answer, passages=passages, vllm=ollama)
         if not next_query or next_query == current_query:
             return answer
         current_query = next_query
